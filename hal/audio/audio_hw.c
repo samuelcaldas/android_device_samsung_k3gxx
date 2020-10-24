@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2011 The Android Open Source Project
  * Copyright (C) 2012 The Android Open Source Project
  * Copyright (C) 2012 Wolfson Microelectronics plc
  * Copyright (C) 2013-2015 The CyanogenMod Project
@@ -24,11 +25,14 @@
 #define LOG_NDEBUG 0
 
 #include <errno.h>
+#include <fcntl.h>
 #include <pthread.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <sys/time.h>
-#include <fcntl.h>
+#include <sys/types.h>
+#include <dlfcn.h>
 
 #include <cutils/log.h>
 #include <cutils/properties.h>
@@ -45,9 +49,13 @@
 #include <tinyalsa/asoundlib.h>
 
 #include <audio_utils/resampler.h>
+#include <audio_utils/echo_reference.h>
 #include <audio_route/audio_route.h>
 
 #include "routing.h"
+
+#include "eS325VoiceProcessing.h"
+
 #include "ril_interface.h"
 
 #define PCM_CARD 0
@@ -72,6 +80,7 @@
 #define HDMI_MULTI_PERIOD_SIZE  336
 #define HDMI_MULTI_PERIOD_COUNT 8
 #define HDMI_MULTI_DEFAULT_CHANNEL_COUNT 6 /* 5.1 */
+/* default sampling for HDMI multichannel output */
 #define HDMI_MULTI_DEFAULT_SAMPLING_RATE 48000
 /*
  * Default sampling for HDMI multichannel output
@@ -81,7 +90,9 @@
  * multi channel HDMI output 2 (5.1 and 7.1)
  */
 #define HDMI_MAX_SUPPORTED_CHANNEL_MASKS 2
+#define HDMI_MAX_SUPPORTED_CHANNEL_MASKS 2
 
+#define ARRAY_SIZE(a) (sizeof((a)) / sizeof((a[0])))
 
 struct pcm_config pcm_config_fast = {
     .channels = 2,
@@ -102,7 +113,7 @@ struct pcm_config pcm_config_deep = {
 struct pcm_config pcm_config_in = {
     .channels = 2,
     .rate = 48000,
-    .period_size = 240,
+    .period_size = 960,
     .period_count = 2,
     .format = PCM_FORMAT_S16_LE,
 };
@@ -144,7 +155,7 @@ struct pcm_config pcm_config_voice_wide = {
     .rate = 16000,
     .period_size = 960,
     .period_count = 2,
-.format = PCM_FORMAT_S16_LE,
+    .format = PCM_FORMAT_S16_LE,
 };
 
 struct pcm_config pcm_config_hdmi_multi = {
@@ -169,6 +180,7 @@ struct audio_device {
     audio_devices_t out_device; /* "or" of stream_out.device for all active output streams */
     audio_devices_t in_device;
     bool mic_mute;
+    struct audio_route *ar;
     audio_source_t input_source;
     int cur_route_id;     /* current route ID: combination of input source
                            * and output device IDs */
@@ -184,6 +196,12 @@ struct audio_device {
         const char *device;
         const char *route;
     } active_input;
+    /* ES325 */
+    int es325_preset;
+    int es325_new_mode;
+    int es325_mode;
+
+    audio_channel_mask_t in_channel_mask;
 
     /* Call audio */
     struct pcm *pcm_voice_rx;
@@ -202,7 +220,6 @@ struct audio_device {
     bool two_mic_disabled;
 
     int hdmi_drv_fd;
-    audio_channel_mask_t in_channel_mask;
 
     /* RIL */
     struct ril_handle ril;
@@ -225,6 +242,11 @@ struct stream_out {
      * HDMI and WM1811 share the same I2S. This means that notifications and other sounds are
      * silent when watching a 5.1 movie. */
     bool disabled;
+
+    struct resampler_itfe *resampler;
+    struct echo_reference_itfe *echo_reference;
+    int16_t *buffer;
+    size_t buffer_frames;
 
     audio_channel_mask_t channel_mask;
     /* Array of supported channel mask configurations. +1 so that the last entry is always 0 */
@@ -259,7 +281,7 @@ struct stream_in {
 
     uint16_t ramp_vol;
     uint16_t ramp_step;
-    size_t ramp_frames;
+    uint16_t ramp_frames;
 
     audio_channel_mask_t channel_mask;
     audio_input_flags_t flags;
@@ -407,7 +429,10 @@ static int enable_hdmi_audio(struct audio_device *adev, int enable)
     return ret;
 }
 
-/* must be called with hw device mutex locked */
+/* must be called with hw device mutex locked
+ * Called from adev_open_output_stream with no stream lock,
+ * but this is OK because stream is not yet visible
+ */
 static int read_hdmi_channel_masks(struct audio_device *adev, struct stream_out *out) {
     int ret;
     struct v4l2_control ctrl;
@@ -916,12 +941,12 @@ static void stop_bt_sco(struct audio_device *adev) {
  **********************************************************/
 
 /*
- * This function must be called with hw device mutex locked, OK to hold other
- * mutexes
+ * This function must be called with hw device mutex locked, OK to hold other mutexes
  */
 static int start_voice_call(struct audio_device *adev)
 {
     struct pcm_config *voice_config;
+    bool use_8k_voice = property_get_bool("persist.voice.use.8k", false);
 
     if (adev->pcm_voice_rx != NULL || adev->pcm_voice_tx != NULL) {
         ALOGW("%s: Voice PCMs already open!\n", __func__);
@@ -930,7 +955,7 @@ static int start_voice_call(struct audio_device *adev)
 
     ALOGV("%s: Opening voice PCMs", __func__);
 
-    if (adev->wb_amr) {
+    if (adev->wb_amr || !use_8k_voice) {
         voice_config = &pcm_config_voice_wide;
     } else {
         voice_config = &pcm_config_voice;
@@ -1380,7 +1405,6 @@ static ssize_t read_frames(struct stream_in *in, void *buffer, ssize_t frames)
 
         frames_wr += frames_rd;
     }
-
     return frames_wr;
 }
 
@@ -1731,7 +1755,6 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
         unlock_all_outputs(adev, out);
     }
 false_alarm:
-
     if (out->disabled) {
         ret = -EPIPE;
         goto exit;
@@ -1860,7 +1883,6 @@ static audio_channel_mask_t in_get_channels(const struct audio_stream *stream)
 
     return in->channel_mask;
 }
-
 
 static size_t in_get_buffer_size(const struct audio_stream *stream)
 {
@@ -2479,14 +2501,12 @@ static int adev_open_input_stream(struct audio_hw_device *dev,
     in->io_handle = handle;
     in->channel_mask = config->channel_mask;
     in->flags = flags;
-    // in->frames_read = 0;
     struct pcm_config *pcm_config = flags & AUDIO_INPUT_FLAG_FAST ?
-    &pcm_config_in_low_latency : &pcm_config_in;
+            &pcm_config_in_low_latency : &pcm_config_in;
     in->config = pcm_config;
 
     in->buffer = malloc(pcm_config->period_size * pcm_config->channels
-                        * audio_stream_in_frame_size(&in->stream));
-
+                                               * audio_stream_in_frame_size(&in->stream));
     if (!in->buffer) {
         ret = -ENOMEM;
         goto err_malloc;
@@ -2552,10 +2572,11 @@ static int adev_close(hw_device_t *device)
 
     audio_route_free(adev->audio_route);
 
+    eS325_Release();
+
     if (adev->hdmi_drv_fd >= 0) {
         close(adev->hdmi_drv_fd);
     }
-
     /* RIL */
     ril_close(&adev->ril);
 
@@ -2597,13 +2618,18 @@ static int adev_open(const hw_module_t* module, const char* name,
     adev->hw_device.open_input_stream = adev_open_input_stream;
     adev->hw_device.close_input_stream = adev_close_input_stream;
     adev->hw_device.dump = adev_dump;
+    adev->hw_device.set_master_mute = NULL;
+    adev->hw_device.get_master_mute = NULL;
 
-    adev->audio_route = audio_route_init(MIXER_CARD, NULL);
+    adev->ar = audio_route_init(MIXER_CARD, NULL);
     adev->input_source = AUDIO_SOURCE_DEFAULT;
     adev->active_output.dev_id = -1;
     /* adev->cur_route_id initial value is 0 and such that first device
      * selection is always applied by select_devices() */
 
+    adev->es325_preset = ES325_PRESET_INIT;
+    adev->es325_new_mode = ES325_MODE_LEVEL;
+    adev->es325_mode = ES325_MODE_LEVEL;
     adev->hdmi_drv_fd = -1;
 
     adev->mode = AUDIO_MODE_NORMAL;

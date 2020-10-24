@@ -1,5 +1,6 @@
 #
 # Copyright (C) 2013 The CyanogenMod Project
+# Copyright (C) 2016 The Android Open-Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,10 +15,10 @@
 # limitations under the License.
 #
 
-LOCAL_PATH := $(call my-dir)
+COMMON_PATH := $(call my-dir)
 
 ifeq ($(TARGET_DEVICE),k3gxx)
 
-include $(call all-makefiles-under,$(LOCAL_PATH))
+include $(call all-makefiles-under,$(COMMON_PATH))
 
 endif

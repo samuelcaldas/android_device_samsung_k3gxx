@@ -10,3 +10,5 @@ allow kernel device:chr_file { create setattr getattr unlink };
 allow kernel kernel:capability { chown };
 allow kernel sysfs_devices_system_cpu:file { setattr };
 allow kernel sysfs:file { setattr };
+# Used for attaching external SD card block device as mass storage
+allow kernel block_device:blk_file { read write };

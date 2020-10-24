@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (C) 2010 The Android Open Source Project
+     Copyright (C) 2014 The Linux Foundation. All rights reserved.
+     Not a contribution.
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -38,7 +40,7 @@
 <!ATTLIST Audio sampleRate CDATA #REQUIRED>
 <!ATTLIST Audio channels (1|2) #REQUIRED>
 <!ELEMENT ImageEncoding EMPTY>
-<!ATTLIST ImageEncoding quality (90|80|70|60|50|40) #REQUIRED>
+<!ATTLIST ImageEncoding quality (100|90|80|70|60|50|40) #REQUIRED>
 <!ELEMENT ImageDecoding EMPTY>
 <!ATTLIST ImageDecoding memCap CDATA #REQUIRED>
 <!ELEMENT Camera EMPTY>
@@ -88,14 +90,12 @@
 -->
 <MediaSettings>
     <!-- Each camcorder profile defines a set of predefined configuration parameters -->
-    <!-- Back Camera -->
     <CamcorderProfiles cameraId="0" startOffsetMs="700">
-
     <EncoderProfile quality="low" fileFormat="mp4" duration="30">
       <Video codec="h264"
-             bitRate="384000"
-             width="176"
-             height="144"
+             bitRate="767000"
+             width="320"
+             height="240"
              frameRate="30" />
 
       <Audio codec="aac"
@@ -119,19 +119,19 @@
 
     <EncoderProfile quality="qcif" fileFormat="mp4" duration="30">
       <Video codec="h264"
-             bitRate="384000"
-             width="176"
-             height="144"
+             bitRate="767000"
+             width="352"
+             height="288"
              frameRate="30" />
 
-      <Audio codec="aac"
+            <Audio codec="aac"
              bitRate="128000"
              sampleRate="48000"
              channels="2" />
     </EncoderProfile>
 
     <EncoderProfile quality="qvga" fileFormat="mp4" duration="30">
-      <Video codec="h264"
+            <Video codec="h264"
              bitRate="767000"
              width="320"
              height="240"
@@ -170,7 +170,7 @@
     </EncoderProfile>
 
     <EncoderProfile quality="1080p" fileFormat="mp4" duration="30">
-      <Video codec="h264"
+            <Video codec="h264"
              bitRate="17000000"
              width="1920"
              height="1080"
@@ -184,9 +184,9 @@
 
     <EncoderProfile quality="timelapselow" fileFormat="mp4" duration="30">
       <Video codec="h264"
-             bitRate="384000"
-             width="176"
-             height="144"
+             bitRate="767000"
+             width="320"
+             height="240"
              frameRate="30" />
 
       <!--
@@ -200,7 +200,7 @@
     </EncoderProfile>
 
     <EncoderProfile quality="timelapsehigh" fileFormat="mp4" duration="30">
-      <Video codec="h264"
+            <Video codec="h264"
              bitRate="17000000"
              width="1920"
              height="1080"
@@ -218,9 +218,9 @@
 
     <EncoderProfile quality="timelapseqcif" fileFormat="mp4" duration="30">
       <Video codec="h264"
-             bitRate="384000"
-             width="176"
-             height="144"
+             bitRate="767000"
+             width="352"
+             height="288"
              frameRate="30" />
 
       <!--
@@ -278,7 +278,7 @@
             The Audio part of the profile will not be used since time lapse mode
             does not capture audio
       -->
-      <Audio codec="aac"
+     <Audio codec="aac"
              bitRate="256000"
              sampleRate="48000"
              channels="2" />
@@ -301,21 +301,21 @@
              channels="2" />
     </EncoderProfile>
 
-    <ImageEncoding quality="95" />
+    <ImageEncoding quality="100" />
+    <ImageEncoding quality="90" />
     <ImageEncoding quality="80" />
-    <ImageEncoding quality="70" />
-    <ImageDecoding memCap="20000000" />
+    <ImageDecoding memCap="40000000" />
 
-    </CamcorderProfiles>
+	  </CamcorderProfiles>
 
-    <!-- Front Camera -->
+	  <!-- Front Camera -->
     <CamcorderProfiles cameraId="1" startOffsetMs="700">
 
     <EncoderProfile quality="low" fileFormat="mp4" duration="30">
       <Video codec="h264"
-             bitRate="384000"
-             width="176"
-             height="144"
+             bitRate="767000"
+             width="320"
+             height="240"
              frameRate="30" />
 
       <Audio codec="aac"
@@ -339,9 +339,9 @@
 
     <EncoderProfile quality="qcif" fileFormat="mp4" duration="30">
       <Video codec="h264"
-             bitRate="384000"
-             width="176"
-             height="144"
+             bitRate="767000"
+             width="352"
+             height="288"
              frameRate="30" />
 
       <Audio codec="aac"
@@ -404,9 +404,9 @@
 
     <EncoderProfile quality="timelapselow" fileFormat="mp4" duration="30">
       <Video codec="h264"
-             bitRate="384000"
-             width="176"
-             height="144"
+             bitRate="767000"
+             width="320"
+             height="240"
              frameRate="30" />
 
       <!--
@@ -438,19 +438,19 @@
 
     <EncoderProfile quality="timelapseqcif" fileFormat="mp4" duration="30">
       <Video codec="h264"
-             bitRate="384000"
-             width="176"
-             height="144"
+             bitRate="767000"
+             width="352"
+             height="288"
              frameRate="30" />
 
-       <!--
-             The Audio part of the profile will not be used since time lapse mode
-             does not capture audio
-       -->
+ <!--
+       The Audio part of the profile will not be used since time lapse mode
+       does not capture audio
+ -->
       <Audio codec="aac"
-             bitRate="128000"
-             sampleRate="48000"
-             channels="2" />
+			       bitRate="128000"
+			       sampleRate="48000"
+			       channels="2" />
     </EncoderProfile>
 
     <EncoderProfile quality="timelapseqvga" fileFormat="mp4" duration="30">
@@ -521,10 +521,10 @@
              channels="2" />
     </EncoderProfile>
 
-    <ImageEncoding quality="95" />
-    <ImageEncoding quality="80" />
-    <ImageEncoding quality="70" />
-    <ImageDecoding memCap="20000000" />
+        <ImageEncoding quality="100" />
+        <ImageEncoding quality="90" />
+        <ImageEncoding quality="80" />
+        <ImageDecoding memCap="40000000" />
 
     </CamcorderProfiles>
 
@@ -591,7 +591,7 @@
         for TEST applications. For other applications, we do
         not perform any checks at all.
     -->
-    <VideoDecoderCap name="wmv" enabled="false"/>
+    <VideoDecoderCap name="wmv" enabled="true"/>
     <AudioDecoderCap name="wma" enabled="false"/>
 
     <!--

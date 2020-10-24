@@ -30,6 +30,20 @@
 #define VOLUME_STEPS_DEFAULT  "5"
 #define VOLUME_STEPS_PROPERTY "ro.config.vc_call_vol_steps"
 
+/* Function pointers */
+void *(*_ril_open_client)(void);
+int (*_ril_close_client)(void *);
+int (*_ril_connect)(void *);
+int (*_ril_is_connected)(void *);
+int (*_ril_disconnect)(void *);
+int (*_ril_set_call_volume)(void *, enum ril_sound_type, int);
+int (*_ril_set_call_audio_path)(void *, enum ril_audio_path);
+int (*_ril_set_call_clock_sync)(void *, enum ril_clock_state);
+int (*_ril_set_mute)(void *, int);
+int (*_ril_set_two_mic_control)(void *, enum ril_two_mic_device, enum ril_two_mic_state);
+int (*_ril_register_unsolicited_handler)(void *, int, void *);
+int (*_ril_get_wb_amr)(void *, void *);
+
 /* Audio WB AMR callback */
 void (*_audio_set_wb_amr_callback)(void *, int);
 void *callback_data = NULL;

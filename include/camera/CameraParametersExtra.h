@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2014 The CyanogenMod Project
+ * Copyright (C) 2016 The CyanogenMod Project
+ * Copyright (C) 2017 The LineageOS Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +25,17 @@
     const char CameraParameters::EFFECT_VINTAGE_COLD[] = "vintage-cold"; \
     const char CameraParameters::EFFECT_VINTAGE_WARM[] = "vintage-warm"; \
     const char CameraParameters::EFFECT_WASHED[] = "washed"; \
+    const char CameraParameters::KEY_CITYID[] = "cityid"; \
+    const char CameraParameters::KEY_WEATHER[] = "weather"; \
     const char CameraParameters::ISO_AUTO[] = "auto"; \
+    const char CameraParameters::ISO_100[] = "ISO100"; \
+    const char CameraParameters::ISO_200[] = "ISO200"; \
+    const char CameraParameters::ISO_400[] = "ISO400"; \
+    const char CameraParameters::ISO_800[] = "ISO800"; \
+    const char CameraParameters::ISO_100[] = "ISO100"; \
+    const char CameraParameters::ISO_200[] = "ISO200"; \
+    const char CameraParameters::ISO_400[] = "ISO400"; \
+    const char CameraParameters::ISO_800[] = "ISO800"; \
     const char CameraParameters::ISO_NIGHT[] = "night"; \
     const char CameraParameters::ISO_SPORTS[] = "sports"; \
     const char CameraParameters::ISO_6400[] = "6400"; \
@@ -47,6 +59,7 @@
     const char CameraParameters::KEY_RT_HDR[] = "rt-hdr";
 
 #define CAMERA_PARAMETERS_EXTRA_H \
+    int getInt64(const char *key) const; \
     static const char PIXEL_FORMAT_YUV420SP_NV21[]; \
     static const char EFFECT_CARTOONIZE[]; \
     static const char EFFECT_POINT_RED_YELLOW[]; \
@@ -77,3 +90,17 @@
     static const char KEY_PHASE_AF[]; \
     static const char KEY_SUPPORTED_RT_HDR[]; \
     static const char KEY_RT_HDR[];
+\
+int CameraParameters::getInt64(const char *key __attribute__ ((unused))) const \
+{ \
+    return -1; \
+} \
+\
+extern "C" { \
+    void acquire_dvfs_lock(void) { } \
+    void release_dvfs_lock(void) { } \
+} \
+
+    /* LAST_LINE OF CAMERA_PARAMETERS_EXTRA_H, every line before this one *MUST* have
+     * a backslash \ at the end of the line or else everything will break.
+     */

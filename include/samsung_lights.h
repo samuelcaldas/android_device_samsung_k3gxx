@@ -31,7 +31,7 @@
 #define LED_BLINK_NODE "/sys/devices/virtual/sec/led/led_blink"
 
 // Uncomment to enable variable button brightness
-//#define VAR_BUTTON_BRIGHTNESS 1
+#define VAR_BUTTON_BRIGHTNESS 1
 
 /*
  * Brightness adjustment factors
