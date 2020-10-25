@@ -1,6 +1,6 @@
 #
 # Changes that Samsung made to /init.rc, keeping them separate to keep
-# the init.universal5420.rc file closer to stock.
+# the init.universal5422.rc file closer to stock.
 #
 
 on post-fs-data

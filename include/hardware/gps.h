@@ -2251,7 +2251,3 @@ typedef struct {
 __END_DECLS
 
 #endif /* ANDROID_INCLUDE_HARDWARE_GPS_H */
-<<<<<<< HEAD
-=======
-
->>>>>>> exynos5420/cm-14.1
