@@ -1,4 +1,4 @@
-COMMON_PATH := $(call my-dir)
+LOCAL_PATH := $(call my-dir)
 
 ## Overload bootimg generation: Same as the original, + BUMP
 $(INSTALLED_BOOTIMAGE_TARGET): $(MKBOOTIMG) $(INTERNAL_BOOTIMAGE_FILES)

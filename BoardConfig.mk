@@ -219,6 +219,7 @@ BOARD_RIL_CLASS := ../../../$(common_path)/ril
 # SELinux
 BOARD_SEPOLICY_DIRS += \
     $(common_path)/sepolicy
+SELINUX_IGNORE_NEVERALLOWS := true
 
 
 # NFC

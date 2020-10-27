@@ -14,6 +14,6 @@
 # limitations under the License.
 #
 
-COMMON_PATH := $(call my-dir)
+LOCAL_PATH := $(call my-dir)
 
-include $(call all-makefiles-under,$(COMMON_PATH))
+include $(call all-makefiles-under,$(LOCAL_PATH))

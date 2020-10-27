@@ -15,7 +15,7 @@
 ifneq ($(TARGET_DEVICE),k3gxx)
 ifneq ($(TARGET_AUDIOHAL_VARIANT),samsung)
 
-COMMON_PATH := $(call my-dir)
+LOCAL_PATH := $(call my-dir)
 
 # Audio HAL
 include $(CLEAR_VARS)
