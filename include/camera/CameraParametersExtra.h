@@ -25,7 +25,7 @@
     const char CameraParameters::EFFECT_VINTAGE_COLD[] = "vintage-cold"; \
     const char CameraParameters::EFFECT_VINTAGE_WARM[] = "vintage-warm"; \
     const char CameraParameters::EFFECT_WASHED[] = "washed"; \
-./Device:k3gxx    const char CameraParameters::ISO_AUTO[] = "auto"; \
+    const char CameraParameters::ISO_AUTO[] = "auto"; \
     const char CameraParameters::ISO_NIGHT[] = "night"; \
     const char CameraParameters::ISO_SPORTS[] = "sports"; \
     const char CameraParameters::ISO_6400[] = "6400"; \
